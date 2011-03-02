@@ -272,32 +272,3 @@ class StructFx
     end
 
 end
-=begin
-struct = StructFx::new("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMOPQRSTUVWXYZ") do
-    int8 :n_int8
-    int16 :n_int16
-    int32 :n_int32
-    int64 :n_int64
-    uint8 :n_uint8
-    uint16 :n_uint16
-    uint32 :n_uint32
-    uint64 :n_uint64
-    float :n_float
-    double :n_double
-    char :n_char
-    string (:n_string) {3}
-    byte :n_flags do  # byte is usually length 8 bits
-        number (:n_number) {7}
-        boolean :n_boolean
-    end
-end
-
-p struct.data
-p struct.data.n_flags.data
-p struct
-p struct.length
-p "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMOPQRSTUVWXYZ"[0...struct.length]
-
-struct.data.n_flags.data.n_boolean = false
-p struct
-=end

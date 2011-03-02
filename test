@@ -1,0 +1,93 @@
+#!/usr/bin/ruby
+# encoding: utf-8
+# (c) 2011 Martin Kozák (martinkozak@martinkozak.net)
+
+$:.push("./lib")
+require "struct-fx"
+require "riot"
+
+context "StructFx (development)" do
+    setup do 
+        StructFx::new("abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMOPQRSTUVWXYZ") do
+            int8 :n_int8
+            int16 :n_int16
+            int32 :n_int32
+            int64 :n_int64
+            uint8 :n_uint8
+            uint16 :n_uint16
+            uint32 :n_uint32
+            uint64 :n_uint64
+            float :n_float
+            double :n_double
+            char :n_char
+            string (:n_string) {3}
+            byte :n_flags do
+                number (:n_number) {7}
+                boolean :n_boolean
+            end
+        end
+    end
+    
+    asserts("correct unpacking") do
+        result = true
+        
+        result &= (topic.data.n_int8 == 97)
+        result &= (topic.data.n_int16 == 25442)
+        result &= (topic.data.n_int32 == 1734763876)
+        result &= (topic.data.n_int64 == 8029475498074204520)
+        result &= (topic.data.n_uint8 == 112)
+        result &= (topic.data.n_uint16 == 29297)
+        result &= (topic.data.n_uint32 == 1987409011)
+        result &= (topic.data.n_uint64 == 3689065129052829815)
+        result &= (topic.data.n_float == 1.0860432666959241e-05)
+        result &= (topic.data.n_double == 3369835408753332000000000000000.0)
+        result &= (topic.data.n_char == ?G)
+        result &= (topic.data.n_string == "HIJ")
+        
+        result &= (topic.data.n_flags.data.n_number == 37)
+        result &= (topic.data.n_flags.data.n_boolean == true)
+    end
+    
+    asserts("correct packing") do
+        topic.to_s == "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJK"
+    end
+    
+    asserts("correct length") do
+        topic.length == 47
+    end
+    
+    asserts("length failure") do
+        begin
+            StructFx::new("a") do
+                int16 :n_int16
+            end
+        rescue Exception => e
+            e.message == "Data are shorter than declaration."
+        end
+    end
+end
+
+context "StructFx (real-life)" do
+    setup do
+        data = nil
+        File.open("./test.gif", "rb") do |io|
+            data = io.read(10)
+        end
+
+        gif = StructFx::new(data) do
+            string (:gif) {3}
+            string (:version) {3}
+            uint16 :width
+            uint16 :height
+        end   
+    end
+    
+    asserts("GIF header") do
+        result = true
+        
+        result &= (topic.data.gif == "GIF")
+        result &= (topic.data.version == "89a")
+        result &= (topic.data.width == 32)
+        result &= (topic.data.height == 32)
+    end
+end
