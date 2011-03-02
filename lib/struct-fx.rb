@@ -267,12 +267,16 @@ class StructFx
     
     ##
     # Returns total length of the struct in bytes.
+    #
     # @return [Integer] total length of the declaration
+    # @since 0.1.1
     #
     
-    def length
+    def bytesize
         self.compiled.length
     end
+    
+    alias :length :bytesize
     
     ##
     # Converts to string.
