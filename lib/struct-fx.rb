@@ -31,7 +31,7 @@ class StructFx
     
     ##
     # Holds raw data.
-    # @return [Integer] raw (original) integer data
+    # @return [String] raw (original) string data
     #
     
     attr_reader :raw
