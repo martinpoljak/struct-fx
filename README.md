@@ -54,8 +54,8 @@ Supported data types are:
  * `packed bytes` and `flag arrays` (1 byte),
  * skipped data blocks.
  
-See documentation of `StructFx#declare` method and [documentation][2]
-of the [BitPacker][1] library.
+More detailed documentation is available in `StructFx#declare` method 
+documentation and [documentation][2] of the [BitPacker][1] library.
 
 Contributing
 ------------
