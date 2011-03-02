@@ -60,7 +60,8 @@ class StructFx
         :double => ["d", 8],
         :char => ["a", 1],
         :string => ["Z", 1],
-        :byte => ["C", 1]
+        :byte => ["C", 1],
+        :skip => ["a", 1],
     }
     
     ##
@@ -68,7 +69,7 @@ class StructFx
     #
     
     Compiled = Struct::new(
-        :meta, :unpack, :length
+        :enabled, :processors, :packing, :unpacking, :lengths, :length
     )
     
     ##
@@ -147,21 +148,30 @@ class StructFx
     
     def compiled
         if @compiled.nil?
-            @compiled = self.class::Compiled::new([], "", 0)
+            @compiled = self.class::Compiled::new([], [], "", "", [], 0)
+            types = self.class::TYPES
             
             @stack.each do |name, type, args, block|
-                type_meta = self.class::TYPES[type]
+                type_meta = types[type]
                 length = block.nil? ? 1 : block.call()
+                pack_char = type_meta[0] + length.to_s
+                total_length = type_meta[1] * length
                 
-                @compiled.meta << args
-                @compiled.unpack << type_meta[0] << length.to_s
-                @compiled.length += type_meta[1] * length
+                @compiled.enabled << (not name.nil?)
+                @compiled.processors << args
+                @compiled.packing << pack_char
+                @compiled.unpacking << pack_char
+                @compiled.lengths << total_length
+                @compiled.length += total_length
             end
             
         end
         
-        @compiled.meta.freeze
-        @compiled.unpack.freeze
+        @compiled.enabled.freeze
+        @compiled.processors.freeze
+        @compiled.packing.freeze
+        @compiled.unpacking.freeze
+        @compiled.lengths.freeze
 
         return @compiled.freeze
     end
@@ -180,6 +190,15 @@ class StructFx
         end
         
         self.add(name, :byte, callback)
+    end
+    
+    ##
+    # Adds skipping declaration.
+    # @param [Proc] block with length
+    #
+    
+    def skip(&block)
+        self.add(nil, :skip, nil, block)
     end
     
     ##
@@ -219,16 +238,24 @@ class StructFx
     def data
         if @data.nil?
             values = [ ]
-            extracted = @raw.unpack(self.compiled.unpack)
+            compiled = self.compiled
+            extracted = @raw.unpack(compiled.unpacking)
+
+            compiled.enabled.each_index do |i|
             
-            self.compiled.meta.each_index do |i|
-                callback = self.compiled.meta[i]
+                # Skips skipped items
+                if not compiled.enabled[i]
+                    next
+                end
                 
+                # Calls postprocessing if required
+                callback = compiled.processors[i]
                 if callback.nil?
                     values << extracted[i]
                 else
                     values << callback.call(extracted[i])
                 end
+                
             end
 
             @data = __struct::new(*values)
@@ -252,7 +279,31 @@ class StructFx
     #
     
     def to_s
-        self.data.entries.pack(self.compiled.unpack)
+        entries = self.data.entries
+        compiled = self.compiled
+        
+        values = [ ]
+        length = 0
+        delta = 0
+        
+        compiled.enabled.each_index do |i|
+        
+            # Pastes skipped data from RAW
+            if not compiled.enabled[i]
+                from = length
+                to = (length + compiled.lengths[i])
+                values << @raw[from...to]
+                delta += 1
+            
+            # In otherwise, take value from analyzed data
+            else
+                values << entries[i - delta]    # current item minus count of non-entry (skipped) items
+            end
+        
+            length += self.compiled.lengths[i]
+        end
+
+        values.pack(self.compiled.packing)
     end
     
     
@@ -265,6 +316,8 @@ class StructFx
     def __struct
         if @struct.nil?
             members = @stack.map { |i| i[0] }
+            members.compact!
+
             @struct = Struct::new(*members)
         end
         

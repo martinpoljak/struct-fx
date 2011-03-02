@@ -17,6 +17,7 @@ context "StructFx (development)" do
             uint16 :n_uint16
             uint32 :n_uint32
             uint64 :n_uint64
+            skip {2}
             float :n_float
             double :n_double
             char :n_char
@@ -39,21 +40,21 @@ context "StructFx (development)" do
         result &= (topic.data.n_uint16 == 29297)
         result &= (topic.data.n_uint32 == 1987409011)
         result &= (topic.data.n_uint64 == 3689065129052829815)
-        result &= (topic.data.n_float == 1.0860432666959241e-05)
-        result &= (topic.data.n_double == 3369835408753332000000000000000.0)
-        result &= (topic.data.n_char == ?G)
-        result &= (topic.data.n_string == "HIJ")
+        result &= (topic.data.n_float == 0.00017568175098858774)
+        result &= (topic.data.n_double == 1.5839800103804824e+40)
+        result &= (topic.data.n_char == ?I)
+        result &= (topic.data.n_string == "JKL")
         
-        result &= (topic.data.n_flags.data.n_number == 37)
+        result &= (topic.data.n_flags.data.n_number == 38)
         result &= (topic.data.n_flags.data.n_boolean == true)
     end
     
     asserts("correct packing") do
-        topic.to_s == "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJK"
+        topic.to_s == "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLM"
     end
     
     asserts("correct length") do
-        topic.length == 47
+        topic.length == 49
     end
     
     asserts("length failure") do
@@ -82,7 +83,7 @@ context "StructFx (real-life)" do
         end   
     end
     
-    asserts("GIF header") do
+    asserts("GIF header unpacking") do
         result = true
         
         result &= (topic.data.gif == "GIF")
@@ -90,4 +91,13 @@ context "StructFx (real-life)" do
         result &= (topic.data.width == 32)
         result &= (topic.data.height == 32)
     end
+    
+    asserts("GIF header packing") do
+        topic.data.width = 128
+        topic.data.height = 128
+        topic.data.version = "87a"
+        
+        topic.to_s.force_encoding("ASCII") == "GIF87a\x80\x00\x80\x00".force_encoding("ASCII")
+    end
+
 end
