@@ -105,6 +105,7 @@ class StructFx
     #       uint16 :n_uint16
     #       uint32 :n_uint32
     #       uint64 :n_uint64
+    #       skip {2}
     #       float :n_float
     #       double :n_double
     #       char :n_char
