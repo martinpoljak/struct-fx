@@ -18,11 +18,13 @@ Gem::Specification.new do |s|
   s.files = [
     ".document",
     "Gemfile",
+    "Gemfile.lock",
     "LICENSE.txt",
     "README.md",
     "Rakefile",
     "VERSION",
     "lib/struct-fx.rb",
+    "struct-fx.gemspec",
     "test",
     "test.gif"
   ]
