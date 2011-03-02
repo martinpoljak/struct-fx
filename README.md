@@ -2,7 +2,16 @@ StructFx
 ========
 
 **struct-fx** provides declarative pure Ruby equivalent of C++ structs.
-See an real live example:
+Declarations are simple:
+
+    gif = StructFx::new(data) do
+        string (:format) {3}
+        string (:version) {3}
+        uint16 :width
+        uint16 :height
+    end
+
+See whole real live example:
 
     require "struct-fx"
 
