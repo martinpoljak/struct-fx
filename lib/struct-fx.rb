@@ -168,13 +168,7 @@ class StructFx
             
         end
         
-        @compiled.enabled.freeze
-        @compiled.processors.freeze
-        @compiled.packing.freeze
-        @compiled.unpacking.freeze
-        @compiled.lengths.freeze
-
-        return @compiled.freeze
+        return @compiled
     end
     
     ##
